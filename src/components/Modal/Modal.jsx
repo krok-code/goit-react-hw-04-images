@@ -13,5 +13,36 @@ const Modal = ({ url, onClose }) => {
         onClose();
       }
     };
-  });
+
+    document.body.style.position = 'fixed';
+    window.addEventListener('keydown', handlerKeyDownEsc);
+
+    return () => {
+      document.body.style.position = '';
+      window.removeEventListener('keydown', handlerKeyDownEsc);
+    };
+  }, [onClose]);
+
+  const handleClickOnModal = event => {
+    event.stopPropagation();
+  };
+
+  return createPortal(
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.modal} onClick={handleClickOnModal}>
+        <img src={url} alt="" />
+      </div>
+      <div className="position-absolute top-0 end-0 p-3">
+        <CloseButton onClick={onClose} variant="white" />
+      </div>
+    </div>,
+    modalRootRef
+  );
 };
+
+Modal.propTypes = {
+  url: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
+
+export default Modal;
