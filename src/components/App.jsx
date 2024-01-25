@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from '../App.module.css';
 import { fetchImages, IMAGES_PER_PAGE } from 'api/fetch-data';
 import SearchForm from './SearchForm/SearchForm';
@@ -6,6 +6,7 @@ import SearchBar from './SearchBar/SearchBar';
 import Notification from './Notification';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
+import Loader from './Loader/Loader';
 
 const NOTIFICATION_TYPE = {
   success: 'success',
@@ -14,98 +15,104 @@ const NOTIFICATION_TYPE = {
   info: 'info',
 };
 
-export class App extends Component {
-  state = {
-    images: null,
-    query: '',
-    page: 1,
-    notification: {
-      type: NOTIFICATION_TYPE.info,
-      message: '',
-      show: false,
-    },
-    isLoadMore: false,
+const App = () => {
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState('1');
+  const [images, setImages] = useState([]);
+  const [notification, setNotification] = useState({
+    type: NOTIFICATION_TYPE.info,
+    message: '',
+  });
+  const [showNotification, setShowNotification] = useState(false);
+  const [isLoader, setIsLoader] = useState(false);
+  const [isLoadMoreBtn, setIsLoadMore] = useState(false);
+
+  const handleNotification = (type, message) => {
+    setNotification({ type, message });
+    setShowNotification(true);
   };
 
-  componentDidUpdate(_, prevState) {
-    const { query, page } = this.state;
+  useEffect(() => {
+    if (!query) return;
 
-    if (prevState.query !== query) {
-      fetchImages(query, page)
-        .then(data => {
-          console.log('data :>> ', data);
+    const fetchData = async () => {
+      setIsLoader(true);
 
-          if (!data.totalHits) {
-            this.showNotification(
-              NOTIFICATION_TYPE.info,
-              'Sorry, there are no images matching your search query. Please try again.'
-            );
-            return;
-          }
+      try {
+        const data = await fetchImages(query, page);
 
-          this.setState({ images: data.hits });
-
-          if (data.totalHits > IMAGES_PER_PAGE) {
-            this.displayLoadMoreButton(true);
-          }
-        })
-        .catch(error => {
-          console.error('Fetch error:>>', error);
-          this.showNotification(
-            NOTIFICATION_TYPE.error,
-            `Sorry, there is fetching error: ${error.message}. Please try again.`
+        if (!data.totalHits) {
+          handleNotification(
+            NOTIFICATION_TYPE.info,
+            'Sorry, there are no images matching your search query. Please try again.'
           );
-        });
-    }
-  }
+          setIsLoader(false);
+          return;
+        }
 
-  displayLoadMoreButton = isShow => {
-    this.setState({ isLoadMore: isShow });
-  };
+        setImages(prevImages => [...prevImages, ...data.hits]);
 
-  showNotification = (type, message) => {
-    this.setState({
-      notification: {
-        type,
-        message,
-        show: true,
-      },
-    });
-  };
+        if (data.totalHits > IMAGES_PER_PAGE) {
+          setIsLoadMore(true);
+        }
 
-  closeNotification = () => {
-    this.setState({ notification: { show: false } });
-  };
+        if (IMAGES_PER_PAGE * page >= data.totalHits) {
+          setIsLoadMore(false);
+          handleNotification(
+            NOTIFICATION_TYPE.info,
+            "We're sorry, but you've reached the end of search results."
+          );
+        }
+      } catch (error) {
+        console.error('Fetch error:>> ', error);
+        handleNotification(
+          NOTIFICATION_TYPE.error,
+          `Sorry, there is fetching error: ${error.message}. Please try again.`
+        );
+      } finally {
+        setIsLoader(false);
+      }
+    };
+    fetchData();
+  }, [query, page]);
 
-  handleSearchFormSubmit = query => {
-    if (!query) {
-      this.showNotification(
+  const handleSearchFormSubmit = inputQuery => {
+    if (!inputQuery) {
+      handleNotification(
         NOTIFICATION_TYPE.warning,
-        'PLease, input some search query.'
+        'Please, input some search query.'
       );
       return;
     }
-    this.setState({ query });
+    setQuery(inputQuery);
+    setPage(1);
+    setImages([]);
   };
 
-  render() {
-    const { images, notification, isLoadMore } = this.state;
-    return (
-      <div className={styles.app}>
-        <SearchBar>
-          <SearchForm onSubmit={this.handleSearchFormSubmit} />
-        </SearchBar>
-        {notification.show && (
-          <Notification
-            type={notification.type}
-            onClose={this.closeNotification}
-          >
-            {notification.message}
-          </Notification>
-        )}
-        {images && <ImageGallery images={images} />}
-        {isLoadMore && <Button>Load more</Button>}
-      </div>
-    );
-  }
-}
+  const handleClickLoadMoreButton = () => {
+    setPage(prevState => prevState + 1);
+  };
+
+  return (
+    <div className={styles.app}>
+      <SearchBar>
+        <SearchForm onSubmit={handleSearchFormSubmit} />
+      </SearchBar>
+      {showNotification && (
+        <Notification
+          type={notification.type}
+          onClose={() => setShowNotification(false)}
+        >
+          {notification.message}
+        </Notification>
+      )}
+      <ImageGallery images={images} />
+      {isLoader && <Loader />}
+      {isLoadMoreBtn && (
+        <Button onClick={handleClickLoadMoreButton}>Load more</Button>
+      )}
+    </div>
+  );
+};
+
+export default App;
