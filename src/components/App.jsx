@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { Component } from 'react';
 import styles from '../App.module.css';
-import { fetchImages } from 'api/fetch-data';
+import { fetchImages, IMAGES_PER_PAGE } from 'api/fetch-data';
 import SearchForm from './SearchForm/SearchForm';
 import SearchBar from './SearchBar/SearchBar';
 import Notification from './Notification';
 import ImageGallery from './ImageGallery/ImageGallery';
+import Button from './Button/Button';
 
 const NOTIFICATION_TYPE = {
   success: 'success',
@@ -23,27 +24,44 @@ export class App extends Component {
       message: '',
       show: false,
     },
+    isLoadMore: false,
   };
 
   componentDidUpdate(_, prevState) {
     const { query, page } = this.state;
 
     if (prevState.query !== query) {
-      fetchImages(query, page).then(data => {
-        console.log('data :>> ', data);
+      fetchImages(query, page)
+        .then(data => {
+          console.log('data :>> ', data);
 
-        if (!data.totalHits) {
+          if (!data.totalHits) {
+            this.showNotification(
+              NOTIFICATION_TYPE.info,
+              'Sorry, there are no images matching your search query. Please try again.'
+            );
+            return;
+          }
+
+          this.setState({ images: data.hits });
+
+          if (data.totalHits > IMAGES_PER_PAGE) {
+            this.displayLoadMoreButton(true);
+          }
+        })
+        .catch(error => {
+          console.error('Fetch error:>>', error);
           this.showNotification(
-            NOTIFICATION_TYPE.info,
-            'Sorry, there are no images matching your search query. Please try again.'
+            NOTIFICATION_TYPE.error,
+            `Sorry, there is fetching error: ${error.message}. Please try again.`
           );
-          return;
-        }
-
-        this.setState({ images: data.hits });
-      });
+        });
     }
   }
+
+  displayLoadMoreButton = isShow => {
+    this.setState({ isLoadMore: isShow });
+  };
 
   showNotification = (type, message) => {
     this.setState({
@@ -71,7 +89,7 @@ export class App extends Component {
   };
 
   render() {
-    const { images, notification } = this.state;
+    const { images, notification, isLoadMore } = this.state;
     return (
       <div className={styles.app}>
         <SearchBar>
@@ -86,6 +104,7 @@ export class App extends Component {
           </Notification>
         )}
         {images && <ImageGallery images={images} />}
+        {isLoadMore && <Button>Load more</Button>}
       </div>
     );
   }
