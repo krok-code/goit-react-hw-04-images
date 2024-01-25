@@ -22,7 +22,7 @@ const ImageGalleryItem = ({
 
   return (
     <>
-      <li className={styles.galleryItem}>
+      <li className={styles.galleryItem} onClick={openModal}>
         <img
           className={styles.galleryItemImage}
           src={webformatURL}
