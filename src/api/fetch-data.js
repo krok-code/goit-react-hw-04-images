@@ -29,6 +29,7 @@ export async function fetchImages(query, page = 1) {
     }
     return response.data;
   } catch (error) {
-    console.error(error);
+    console.error('Featching error:', error);
+    throw error;
   }
 }
