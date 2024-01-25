@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './ImageGalleryItem.module.css';
+import Modal from '../Modal/Modal';
 
 const ImageGalleryItem = ({
   webformatURL,
@@ -9,16 +10,29 @@ const ImageGalleryItem = ({
   largeImageURL,
   tags,
 }) => {
+  const [showModal, setShowModal] = useState(false);
+
+  const openModal = () => {
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+  };
+
   return (
-    <li className={styles.galleryItem}>
-      <img
-        className={styles.galleryItemImage}
-        src={webformatURL}
-        alt={tags}
-        width={webformatWidth}
-        height={webformatHeight}
-      />
-    </li>
+    <>
+      <li className={styles.galleryItem}>
+        <img
+          className={styles.galleryItemImage}
+          src={webformatURL}
+          alt={tags}
+          width={webformatWidth}
+          height={webformatHeight}
+        />
+      </li>
+      {showModal && <Modal url={largeImageURL} onClose={closeModal} />}
+    </>
   );
 };
 
