@@ -7,7 +7,7 @@ import Notification from './Notification';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
 import Loader from './Loader/Loader';
-import Modal from './Modal/Modal'; // Переконайтеся, що імпорт є
+import Modal from './Modal/Modal';
 
 const NOTIFICATION_TYPE = {
   success: 'success',
@@ -20,7 +20,8 @@ const App = () => {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [images, setImages] = useState([]);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(null); // Стан для індексу
+  const [selectedImageIndex, setSelectedImageIndex] = useState(null);
+  const [systemInfo, setSystemInfo] = useState(null); // Стан для системних даних
   const [notification, setNotification] = useState({
     type: NOTIFICATION_TYPE.info,
     message: '',
@@ -33,6 +34,14 @@ const App = () => {
     setNotification({ type, message });
     setShowNotification(true);
   };
+
+  // 1. Отримуємо системну інформацію при завантаженні (Взаємодія з ОС через Node.js)
+  useEffect(() => {
+    fetch('http://localhost:5000/api/system')
+      .then(res => res.json())
+      .then(data => setSystemInfo(data))
+      .catch(err => console.log('Backend server is not running yet'));
+  }, []);
 
   useEffect(() => {
     if (!query) return;
@@ -58,6 +67,15 @@ const App = () => {
   }, [query, page]);
 
   const handleSearchFormSubmit = inputQuery => {
+    if (!inputQuery) return;
+
+    // 2. Логування запиту у файл (Взаємодія з Файловою системою через Node.js)
+    fetch('http://localhost:5000/api/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: inputQuery }),
+    }).catch(e => console.log('Logging failed'));
+
     setQuery(inputQuery);
     setPage(1);
     setImages([]);
@@ -69,6 +87,26 @@ const App = () => {
 
   return (
     <div className={styles.app}>
+      {/* Системний віджет для викладача */}
+      {systemInfo && (
+        <div
+          style={{
+            backgroundColor: '#2c3e50',
+            color: '#ecf0f1',
+            padding: '5px 20px',
+            fontSize: '11px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid #34495e',
+          }}
+        >
+          <span>💻 OS: {systemInfo.platform}</span>
+          <span>🧠 CPU Cores: {systemInfo.cpus}</span>
+          <span>📊 RAM Free: {systemInfo.freeMem}</span>
+          <span>⏱️ System Uptime: {systemInfo.uptime}</span>
+        </div>
+      )}
+
       <SearchBar>
         <SearchForm onSubmit={handleSearchFormSubmit} />
       </SearchBar>
@@ -82,7 +120,6 @@ const App = () => {
         </Notification>
       )}
 
-      {/* Передаємо функцію кліку в галерею */}
       <ImageGallery images={images} onImageClick={handleImageClick} />
 
       {isLoader && <Loader />}
@@ -91,7 +128,6 @@ const App = () => {
         <Button onClick={() => setPage(p => p + 1)}>Load more</Button>
       )}
 
-      {/* Якщо індекс вибрано - відкриваємо модалку */}
       {selectedImageIndex !== null && (
         <Modal
           images={images}
