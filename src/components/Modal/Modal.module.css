@@ -7,47 +7,92 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(0, 0, 0, 0.85);
+  background-color: rgba(0, 0, 0, 0.9); /* Трохи темніший фон для контрасту */
   z-index: 1200;
 }
 
 .modal {
   position: relative;
-  max-width: calc(100vw - 150px);
-  max-height: calc(100vh - 40px);
+  /* Зменшуємо картинку: тепер вона займає максимум 80% екрана */
+  max-width: 80vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .modal img {
   display: block;
-  width: 100%;
-  height: auto;
-  max-height: calc(100vh - 40px);
+  max-width: 100%;
+  max-height: 80vh; /* Щоб картинка не вилазила за межі */
   object-fit: contain;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
 }
 
+/* Кнопки перемикання */
 .navBtn {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.1);
   color: white;
-  font-size: 50px;
+  border: none;
+  font-size: 40px;
+  width: 60px;
+  height: 60px;
   cursor: pointer;
-  padding: 10px;
-  opacity: 0.6;
-  transition: opacity 0.2s;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  user-select: none;
 }
 
 .navBtn:hover {
-  opacity: 1;
+  background: rgba(255, 255, 255, 0.3);
+  scale: 1.1;
 }
 
+/* Виносимо кнопки трохи далі від картинки */
+.navBtn:nth-of-type(1) {
+  left: -80px;
+}
+.navBtn:nth-of-type(2) {
+  right: -80px;
+}
+
+/* Стильний лічильник */
 .counter {
   position: absolute;
-  bottom: -30px;
+  bottom: -45px; /* Опускаємо нижче картинки */
   left: 50%;
   transform: translateX(-50%);
-  color: white;
-  font-size: 14px;
+  background-color: rgba(0, 0, 0, 0.6); /* Напівпрозорий фон */
+  color: #ffffff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Ховаємо кнопки на дуже маленьких екранах, щоб не заважали */
+@media (max-width: 768px) {
+  .navBtn {
+    width: 45px;
+    height: 45px;
+    font-size: 30px;
+  }
+  .navBtn:nth-of-type(1) {
+    left: 10px;
+  }
+  .navBtn:nth-of-type(2) {
+    right: 10px;
+  }
+  .modal {
+    max-width: 95vw;
+  }
 }
