@@ -7,7 +7,7 @@ export const IMAGES_PER_PAGE = 12;
 const defaultParam = {
   key: API_KEY,
   image_type: 'photo',
-  orientation: 'norizontal',
+  orientation: 'horizontal',
   safesearch: true,
   per_page: IMAGES_PER_PAGE,
 };

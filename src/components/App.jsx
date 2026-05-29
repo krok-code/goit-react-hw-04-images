@@ -17,7 +17,7 @@ const NOTIFICATION_TYPE = {
 
 const App = () => {
   const [query, setQuery] = useState('');
-  const [page, setPage] = useState('1');
+  const [page, setPage] = useState(1);
   const [images, setImages] = useState([]);
   const [notification, setNotification] = useState({
     type: NOTIFICATION_TYPE.info,

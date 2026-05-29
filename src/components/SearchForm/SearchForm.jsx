@@ -10,7 +10,7 @@ const SearchForm = ({ onSubmit }) => {
   };
 
   const handleFormOnSubmit = e => {
-    e.prevDefault();
+    e.preventDefault();
     onSubmit(input.trim());
   };
 
