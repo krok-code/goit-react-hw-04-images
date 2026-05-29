@@ -7,11 +7,47 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.85);
   z-index: 1200;
 }
 
 .modal {
-  max-width: calc(100vw - 48px);
-  max-height: calc(100vh - 24px);
+  position: relative;
+  max-width: calc(100vw - 150px);
+  max-height: calc(100vh - 40px);
+}
+
+.modal img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: calc(100vh - 40px);
+  object-fit: contain;
+}
+
+.navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: white;
+  font-size: 50px;
+  cursor: pointer;
+  padding: 10px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.navBtn:hover {
+  opacity: 1;
+}
+
+.counter {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  font-size: 14px;
 }

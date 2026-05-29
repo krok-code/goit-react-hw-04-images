@@ -7,6 +7,7 @@ import Notification from './Notification';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
 import Loader from './Loader/Loader';
+import Modal from './Modal/Modal'; // Переконайтеся, що імпорт є
 
 const NOTIFICATION_TYPE = {
   success: 'success',
@@ -19,6 +20,7 @@ const App = () => {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [images, setImages] = useState([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(null); // Стан для індексу
   const [notification, setNotification] = useState({
     type: NOTIFICATION_TYPE.info,
     message: '',
@@ -37,38 +39,17 @@ const App = () => {
 
     const fetchData = async () => {
       setIsLoader(true);
-
       try {
         const data = await fetchImages(query, page);
-
         if (!data.totalHits) {
-          handleNotification(
-            NOTIFICATION_TYPE.info,
-            'Sorry, there are no images matching your search query. Please try again.'
-          );
+          handleNotification(NOTIFICATION_TYPE.info, 'No images found.');
           setIsLoader(false);
           return;
         }
-
         setImages(prevImages => [...prevImages, ...data.hits]);
-
-        if (data.totalHits > IMAGES_PER_PAGE) {
-          setIsLoadMore(true);
-        }
-
-        if (IMAGES_PER_PAGE * page >= data.totalHits) {
-          setIsLoadMore(false);
-          handleNotification(
-            NOTIFICATION_TYPE.info,
-            "We're sorry, but you've reached the end of search results."
-          );
-        }
+        setIsLoadMore(page < Math.ceil(data.totalHits / IMAGES_PER_PAGE));
       } catch (error) {
-        console.error('Fetch error:>> ', error);
-        handleNotification(
-          NOTIFICATION_TYPE.error,
-          `Sorry, there is fetching error: ${error.message}. Please try again.`
-        );
+        handleNotification(NOTIFICATION_TYPE.error, error.message);
       } finally {
         setIsLoader(false);
       }
@@ -77,20 +58,13 @@ const App = () => {
   }, [query, page]);
 
   const handleSearchFormSubmit = inputQuery => {
-    if (!inputQuery) {
-      handleNotification(
-        NOTIFICATION_TYPE.warning,
-        'Please, input some search query.'
-      );
-      return;
-    }
     setQuery(inputQuery);
     setPage(1);
     setImages([]);
   };
 
-  const handleClickLoadMoreButton = () => {
-    setPage(prevState => prevState + 1);
+  const handleImageClick = index => {
+    setSelectedImageIndex(index);
   };
 
   return (
@@ -98,6 +72,7 @@ const App = () => {
       <SearchBar>
         <SearchForm onSubmit={handleSearchFormSubmit} />
       </SearchBar>
+
       {showNotification && (
         <Notification
           type={notification.type}
@@ -106,10 +81,23 @@ const App = () => {
           {notification.message}
         </Notification>
       )}
-      <ImageGallery images={images} />
+
+      {/* Передаємо функцію кліку в галерею */}
+      <ImageGallery images={images} onImageClick={handleImageClick} />
+
       {isLoader && <Loader />}
+
       {isLoadMoreBtn && (
-        <Button onClick={handleClickLoadMoreButton}>Load more</Button>
+        <Button onClick={() => setPage(p => p + 1)}>Load more</Button>
+      )}
+
+      {/* Якщо індекс вибрано - відкриваємо модалку */}
+      {selectedImageIndex !== null && (
+        <Modal
+          images={images}
+          initialIndex={selectedImageIndex}
+          onClose={() => setSelectedImageIndex(null)}
+        />
       )}
     </div>
   );
